@@ -1,0 +1,1014 @@
+MISSION
+Build a professional, fully functional, production-ready image-processing tools platform using Next.js, TypeScript, React, Tailwind CSS, and shadcn/ui. The platform must feel like a real commercial SaaS product — not a student project, not a template, not a demo. Every tool must actually work. Every button must do something real. No fake functionality. No placeholder processing. No simulated results.
+
+TECH STACK — MANDATORY
+Framework: Next.js 14+ (App Router)
+Language: TypeScript (strict mode)
+Styling: Tailwind CSS
+UI Components: shadcn/ui
+Image Processing: Browser-native APIs (Canvas API, File API, Blob API, OffscreenCanvas)
+Performance: Web Workers for CPU-intensive operations
+PDF Generation: pdf-lib or jsPDF (client-side only)
+State Management: React Context + hooks (no Redux unless genuinely necessary)
+Internationalization: next-intl or next-i18next
+SEO: Next.js Metadata API
+No external image-processing APIs
+No paid AI APIs
+No server-side image uploads to third-party services
+All 20 tools must process images entirely inside the user's browser using client-side JavaScript. If any feature technically cannot be implemented client-side, you must explicitly document the limitation and propose the minimal server-side solution before implementing it. The default is always client-side.
+
+PHASE 1 — ARCHITECTURE & PLANNING
+Before writing any component or page, define and document the following architecture decisions in code comments or a README section:
+
+Project Structure
+text
+
+/app
+  /[locale]
+    /page.tsx (Homepage)
+    /tools/page.tsx (All Tools)
+    /tools/[slug]/page.tsx (Individual Tool)
+    /categories/page.tsx
+    /categories/[slug]/page.tsx
+    /about/page.tsx
+    /contact/page.tsx
+    /privacy-policy/page.tsx
+    /cookie-policy/page.tsx
+    /terms-of-service/page.tsx
+    /disclaimer/page.tsx
+    /404.tsx
+/components
+  /layout (Header, Footer, Breadcrumb, Navigation)
+  /tools (ToolCard, ToolGrid, ToolSearch, ToolUploader, ToolPreview, ToolDownload)
+  /ui (shadcn components + custom extensions)
+  /seo (MetaTags, StructuredData, Breadcrumb schema)
+  /ads (AdContainer, AdPlacement — empty but wired)
+  /analytics (AnalyticsProvider — consent-gated)
+  /consent (CookieBanner, ConsentManager)
+  /i18n (LanguageSwitcher)
+  /theme (ThemeProvider, ThemeToggle)
+/lib
+  /tools (tool registry, tool metadata, tool config)
+  /image-processing (core processing utilities)
+  /workers (Web Worker files)
+  /validation (file validators)
+  /utils (shared utilities)
+  /seo (metadata generators)
+  /i18n (translation configs)
+/public
+  /locales/en /locales/ar
+  /icons /images /manifest.json /robots.txt
+/messages (i18n message files)
+Tool Registry System
+Create a centralized tool registry in /lib/tools/registry.ts. Every tool is defined as a configuration object containing:
+
+slug (URL slug)
+nameKey (i18n key)
+descriptionKey (i18n key)
+category
+icon
+keywords (array for search)
+supportedInputFormats
+supportedOutputFormats
+maxFileSizeMB
+maxFiles
+relatedTools (slugs)
+faqs (array of i18n keys)
+This registry is the single source of truth. All tool pages, categories, sitemaps, and search indexes derive from this registry. Adding Tool #21 means adding one entry to the registry and creating one processing function.
+
+PHASE 2 — DESIGN SYSTEM
+Visual Identity
+Establish a consistent design system before building any page:
+
+Primary Color: A professional blue or indigo (e.g., #2563EB or #4F46E5) — pick one and use it consistently
+Typography: Inter or Geist for English; system Arabic font stack for Arabic
+Spacing: 4px base grid, Tailwind spacing scale
+Border Radius: Consistent rounded corners (md/lg/xl depending on component size)
+Shadows: Subtle, layered shadows — not harsh
+Dark Mode: Full dark mode support using Tailwind dark: classes and CSS variables
+Motion: Subtle transitions (150–300ms), no gratuitous animations
+Component Standards
+Every component must have:
+
+Loading state
+Empty state
+Error state
+Success state
+Disabled state (where applicable)
+Color Tokens (CSS Variables)
+Define CSS custom properties for all colors, applied through Tailwind config, supporting light and dark mode via data-theme or class="dark".
+
+Typography Scale
+Define a clear hierarchy:
+
+H1: Page title (one per page)
+H2: Section headings
+H3: Subsection headings
+Body: Readable line height, appropriate size
+Small: Labels, captions, metadata
+Code: Monospace (for any technical content)
+PHASE 3 — INTERNATIONALIZATION (Arabic + English)
+Setup
+Use next-intl for internationalization with App Router.
+
+Default locale: en
+Supported locales: en, ar
+RTL support: When locale is ar, set dir="rtl" on the <html> element
+Language switcher: Visible in the header, switches between English and Arabic
+All UI strings must be translatable — zero hardcoded user-facing strings
+Arabic translations must be accurate and natural — not machine-translated gibberish
+RTL-aware layouts: Flexbox direction, padding, margin, icon placement, breadcrumb order — all must flip correctly in RTL
+The language switcher must preserve the current page route when switching languages
+Translation Files
+Create complete translation files for both en and ar covering:
+
+Navigation items
+Tool names and descriptions
+UI labels (Upload, Download, Reset, Process, Error messages, Success messages)
+Homepage content
+About, Contact, Privacy, Terms pages
+Cookie consent
+FAQ content per tool
+How-to-use instructions per tool
+PHASE 4 — THEME SYSTEM
+Implement a dark/light mode system:
+
+Use next-themes for theme management
+Persist user preference in localStorage
+Respect system prefers-color-scheme as default
+Theme toggle button in header
+All components must render correctly in both modes
+No hardcoded colors — use CSS variables and Tailwind dark mode classes
+Avoid flash of incorrect theme on initial load (use suppressHydrationWarning correctly)
+PHASE 5 — LAYOUT & NAVIGATION
+Header
+Logo (left in LTR, right in RTL)
+Navigation links: Home, Tools, Categories, About
+Search bar (or search icon that expands)
+Language switcher
+Theme toggle
+Mobile: Hamburger menu with slide-out drawer
+Sticky on scroll with subtle backdrop blur
+Fully accessible (keyboard navigable, ARIA labels)
+Footer
+Logo and tagline
+Tool categories with links
+Quick links (About, Contact, Privacy, Terms)
+Language switcher
+Social links (placeholders, not fake)
+Copyright notice
+"All processing done locally in your browser" trust signal
+Breadcrumb Navigation
+Present on all tool pages and category pages
+Structured data (BreadcrumbList schema) on every page that has breadcrumbs
+RTL-aware breadcrumb direction
+PHASE 6 — HOMEPAGE
+The homepage must immediately communicate value, enable quick access to tools, and build trust. Do not make it feel overloaded.
+
+Sections (in order):
+1. Hero Section
+
+Strong H1 headline (e.g., "Powerful Image Tools — Free, Fast, Private")
+Subheadline explaining local browser processing
+Primary CTA button ("Explore All Tools")
+Secondary CTA ("Try Image Compressor" — links to most popular tool)
+Optional: subtle animated background or gradient — restrained, not distracting
+Trust badges: "100% Free", "No Upload Required", "Works in Browser", "No Registration"
+2. Search Bar
+
+Prominent search bar below the hero
+Real-time search across all tool names, descriptions, keywords
+Results dropdown showing matching tools with icons and category labels
+Clicking a result navigates to that tool page
+3. Tool Categories
+
+Visual category cards: Compress, Resize, Convert, Edit, PDF Tools, Color Tools
+Each card links to its category page
+Icons, category name, tool count
+4. Popular Tools
+
+Grid of the 6–8 most useful tools
+Each card: icon, name, short description, CTA button
+5. All Tools Section
+
+Complete filterable grid of all 20 tools
+Filter by category
+Each tool card: icon, name, description, "Use Tool" button
+6. Benefits Section
+
+3–4 key benefits with icons: Free Forever, Browser-Based, Private & Secure, Fast Processing
+Honest copy — no fake statistics
+7. How It Works
+
+3-step visual: Upload → Process → Download
+Simple, clear, not cluttered
+8. Privacy Section
+
+Explain that images never leave the user's device
+Explain how browser-based processing works in plain language
+Trust-building, honest
+9. FAQ Section
+
+5–8 general FAQs about the platform
+FAQ Schema structured data
+10. Footer
+
+As described in the layout section
+PHASE 7 — ALL TOOLS PAGE & CATEGORY PAGES
+All Tools Page (/tools)
+H1: "All Free Image Tools"
+Meta description targeting broad image tool searches
+Search/filter bar
+Filter by category tabs
+Grid of all 20 tool cards
+Each card: icon, name, description, category badge, CTA
+Breadcrumb: Home > Tools
+Category Pages (/categories/[slug])
+Create dedicated pages for each category:
+
+compress-images → Compress Images
+resize-images → Resize Images
+convert-images → Convert Images
+edit-images → Edit Images
+pdf-tools → PDF Tools
+color-tools → Color Tools
+Each category page:
+
+Unique H1 and meta description
+Short introduction paragraph (what this category is for)
+Grid of tools in this category
+FAQ section relevant to the category
+Related categories
+Breadcrumb: Home > Categories > [Category Name]
+PHASE 8 — INDIVIDUAL TOOL PAGES
+Every one of the 20 tools must have its own dedicated page at /tools/[slug].
+
+URL Slugs:
+/tools/image-compressor
+/tools/image-resizer
+/tools/image-cropper
+/tools/image-rotator
+/tools/flip-image-horizontal
+/tools/flip-image-vertical
+/tools/jpg-to-png
+/tools/png-to-jpg
+/tools/jpg-to-webp
+/tools/png-to-webp
+/tools/webp-to-jpg
+/tools/webp-to-png
+/tools/image-to-pdf
+/tools/images-to-pdf
+/tools/merge-images
+/tools/split-image
+/tools/image-color-picker
+/tools/color-palette-extractor
+/tools/image-to-grayscale
+/tools/image-watermark
+Every Tool Page Must Include:
+SEO Elements:
+
+Unique <title> tag
+Unique meta description (155 characters max, naturally written)
+Canonical URL
+Open Graph title, description, image
+Twitter Card metadata
+WebApplication or SoftwareApplication structured data
+BreadcrumbList structured data
+FAQPage structured data
+Page Structure:
+
+Breadcrumb navigation: Home > Tools > [Tool Name]
+H1: Tool name (e.g., "Free Online Image Compressor")
+Short introduction paragraph (2–4 sentences, what it does, why it's useful)
+Tool Interface (described in detail below)
+"How to Use" section (numbered steps, H2)
+"Supported Formats" section
+"Frequently Asked Questions" section (4–6 FAQs per tool, H2)
+"Related Tools" section (3–4 related tool cards)
+Internal links within the content
+Tool Interface Component:
+The tool interface must be built using a reusable ToolShell component that accepts tool-specific configuration and children. The shell provides:
+
+Upload Zone:
+
+Drag-and-drop area with visual feedback (border changes, icon animates on drag)
+"Click to upload" fallback
+File type restriction (HTML accept attribute + JS validation)
+File size validation with clear error messages
+Multi-file support where the tool requires it
+Preview of selected file(s) immediately after selection
+Tool Controls:
+
+Tool-specific settings (sliders, dropdowns, inputs, checkboxes)
+All controls must be accessible (proper labels, ARIA)
+Sensible default values
+Processing State:
+
+"Process" / "Convert" / "Compress" button
+Progress indicator for operations that take time
+Spinner or progress bar as appropriate
+Disable controls during processing
+Web Worker usage for heavy operations to keep UI responsive
+Result State:
+
+Preview of processed image
+File size before/after (where relevant)
+Quality/size comparison (where relevant)
+Download button (triggers actual file download with correct filename and extension)
+"Process Another" / Reset button
+Copy-to-clipboard for color values (Color Picker tool)
+Error State:
+
+Clear, user-friendly error messages
+Recovery option (try again, upload different file)
+Never show raw JavaScript errors to users
+PHASE 9 — ALL 20 TOOLS: DETAILED IMPLEMENTATION REQUIREMENTS
+Implement every tool to production quality. Use the Canvas API, OffscreenCanvas, Blob, FileReader, and Web Workers as needed.
+
+1. Image Compressor (/tools/image-compressor)
+Accept: JPG, PNG, WebP
+Use Canvas toBlob() with quality parameter for lossy compression
+Provide a quality slider (1–100, default 80)
+Show original size vs compressed size and percentage reduction
+Support batch compression (multiple files)
+Output format: same as input (or allow user to choose)
+Web Worker for processing multiple files
+2. Image Resizer (/tools/image-resizer)
+Accept: JPG, PNG, WebP, GIF
+Inputs: width, height in pixels
+Maintain aspect ratio toggle (locked by default)
+Preset sizes: 1920×1080, 1280×720, 800×600, 512×512, 256×256, custom
+Resize algorithm: Use Canvas drawImage with appropriate scaling
+Show original vs new dimensions
+Output: same format as input
+3. Image Cropper (/tools/image-cropper)
+Accept: JPG, PNG, WebP
+Interactive crop interface using Canvas or a lightweight client-side crop library (react-image-crop — pure client-side, no API)
+Drag handles on the crop area
+Aspect ratio presets: Free, 1:1, 4:3, 16:9, 3:2, 9:16
+Show current crop dimensions
+Output: cropped image in same format
+4. Image Rotator (/tools/image-rotator)
+Accept: JPG, PNG, WebP
+Buttons: Rotate 90° Left, Rotate 90° Right, Rotate 180°
+Custom angle input (0–360°)
+Live preview updates immediately
+Canvas-based rotation
+Handle transparent backgrounds for PNG
+5. Flip Image Horizontally (/tools/flip-image-horizontal)
+Accept: JPG, PNG, WebP
+One-click horizontal flip using Canvas transform
+Live preview
+Download flipped image
+6. Flip Image Vertically (/tools/flip-image-vertical)
+Accept: JPG, PNG, WebP
+One-click vertical flip using Canvas transform
+Live preview
+Download flipped image
+7. JPG to PNG (/tools/jpg-to-png)
+Accept: JPG/JPEG only
+Convert using Canvas toBlob('image/png')
+Show file size comparison
+Download as .png
+8. PNG to JPG (/tools/png-to-jpg)
+Accept: PNG only
+Background color picker for transparent areas (default: white)
+Quality slider
+Convert using Canvas toBlob('image/jpeg', quality)
+Download as .jpg
+9. JPG to WebP (/tools/jpg-to-webp)
+Accept: JPG/JPEG only
+Quality slider
+Convert using Canvas toBlob('image/webp', quality)
+Fallback message if browser does not support WebP output
+Download as .webp
+10. PNG to WebP (/tools/png-to-webp)
+Accept: PNG only
+Quality slider
+Transparency preserved
+Convert using Canvas toBlob('image/webp', quality)
+Download as .webp
+11. WebP to JPG (/tools/webp-to-jpg)
+Accept: WebP only
+Background color for transparency
+Quality slider
+Convert using Canvas
+Download as .jpg
+12. WebP to PNG (/tools/webp-to-png)
+Accept: WebP only
+Preserve transparency
+Convert using Canvas toBlob('image/png')
+Download as .png
+13. Image to PDF (/tools/image-to-pdf)
+Accept: JPG, PNG, WebP
+Single image to PDF
+Page size options: A4, Letter, fit-to-image
+Orientation: Portrait, Landscape
+Use pdf-lib (client-side) to generate PDF
+Download as .pdf
+14. Multiple Images to PDF (/tools/images-to-pdf)
+Accept: JPG, PNG, WebP (multiple files)
+Drag to reorder images before creating PDF
+Page size: A4, Letter, fit-to-image
+One image per page
+Use pdf-lib client-side
+Show image order with thumbnails
+Download as combined .pdf
+15. Merge Images (/tools/merge-images)
+Accept: JPG, PNG, WebP (multiple files)
+Merge direction: Horizontal or Vertical
+Spacing control between images
+Background color control
+Use Canvas to draw images side by side or stacked
+Download merged image as PNG or JPG
+16. Split Image (/tools/split-image)
+Accept: JPG, PNG, WebP
+Split into a grid: rows × columns (e.g., 2×2, 3×3, 2×1, 1×2)
+Custom row/column count inputs
+Preview split grid before processing
+Generate each tile as a separate file
+Download all tiles as a ZIP file using JSZip (client-side)
+Show tile dimensions
+17. Image Color Picker (/tools/image-color-picker)
+Accept: JPG, PNG, WebP
+Display image in an interactive canvas
+On click/hover, show the color of the pixel under the cursor
+Display color in: HEX, RGB, HSL formats
+Click to copy any color format to clipboard
+Color history (last 10 picked colors)
+Magnifier/zoom effect near cursor for precision
+All client-side using Canvas getImageData()
+18. Color Palette Extractor (/tools/color-palette-extractor)
+Accept: JPG, PNG, WebP
+Extract the dominant colors from the image (5–10 colors)
+Algorithm: Use a client-side color quantization approach (median cut algorithm implemented in a Web Worker)
+Display color swatches with HEX, RGB values
+Click any swatch to copy the HEX code
+Allow user to choose how many colors to extract (5, 8, 10)
+Export palette as PNG or JSON
+19. Image to Grayscale (/tools/image-to-grayscale)
+Accept: JPG, PNG, WebP
+Convert to grayscale using Canvas pixel manipulation (getImageData, modify each pixel's R/G/B to luminance value)
+Live preview
+Output format: same as input or PNG
+Download grayscale image
+20. Image Watermark (/tools/image-watermark)
+Accept: JPG, PNG, WebP
+Watermark types: Text watermark, Image watermark
+Text watermark: Input text, font size, font family (system fonts), color, opacity, position (9 positions: corners, center, edges)
+Image watermark: Upload a second image (logo/PNG), control size and position and opacity
+Tile watermark option (repeat across entire image)
+Live preview on canvas
+Output: same format as input
+Download watermarked image
+PHASE 10 — REUSABLE SYSTEMS
+Build these as shared, reusable modules — not duplicated per tool:
+
+ToolShell Component
+Wraps every tool page's interactive section. Accepts:
+
+Tool metadata
+Upload configuration (accepted types, max size, max files)
+Controls (render prop or slot)
+Processing function reference
+Output configuration
+Provides: upload, validation, preview, process trigger, result display, download, reset, error handling.
+
+FileUploader Component
+Drag-and-drop zone
+Click-to-browse
+File type validation (MIME type + extension, not just filename)
+File size validation
+Multiple file support with file list display and individual remove buttons
+Image thumbnail preview
+Accessible — keyboard operable, screen reader friendly
+ImagePreview Component
+Before/after split view (where applicable)
+Zoom controls
+Responsive — does not overflow container
+Handles large images gracefully
+DownloadButton Component
+Triggers real file download using URL.createObjectURL + <a> click pattern
+Revokes object URL after download to prevent memory leaks
+Shows filename
+Shows file size
+Loading state
+ProcessingIndicator Component
+Progress bar (0–100%) when deterministic
+Spinner when indeterminate
+Processing status message
+Cancel option where feasible
+ErrorDisplay Component
+Icon + friendly message
+Suggested action
+"Try Again" button
+ToolCard Component
+Used in grids everywhere
+Icon, name, description, category badge, CTA button
+Hover state with subtle lift
+Link wraps entire card
+ToolSearch Component
+Fuzzy search across tool registry
+Shows results instantly
+Keyboard navigable results
+Empty state when no results found
+Clears on Escape key
+RelatedTools Component
+Shows 3–4 related tool cards
+Derived from tool registry relatedTools field
+HowToUse Component
+Numbered steps
+Accepts steps array from tool config
+Icon per step (optional)
+FAQSection Component
+Accordion UI (shadcn/ui Accordion)
+Accepts FAQ array
+Generates FAQPage JSON-LD automatically
+AdPlacement Component
+Empty container with defined dimensions
+data-ad-slot attribute
+Respects cookie consent (only renders if advertising cookies consented)
+Can be enabled/disabled via environment variable NEXT_PUBLIC_ADS_ENABLED
+No layout shift — reserves space even when empty using CSS min-height
+PHASE 11 — SEO ARCHITECTURE
+SEO is a primary product requirement. Implement a serious, scalable SEO system.
+
+Metadata Generation
+Create a utility function generateToolMetadata(toolSlug) that:
+
+Reads from the tool registry
+Generates unique title: {Tool Name} — Free Online Tool | {Site Name}
+Generates unique description targeting the tool's primary search intent
+Generates canonical URL: https://domain.com/tools/{slug}
+Generates Open Graph metadata
+Generates Twitter Card metadata
+Uses export const metadata in every App Router page
+Structured Data
+Create a StructuredData component that accepts schema objects and renders them as <script type="application/ld+json">.
+
+Implement these schemas:
+
+Homepage:
+
+WebSite schema with SearchAction
+Organization schema
+All Tool Pages:
+
+WebApplication or SoftwareApplication schema:
+name, description, applicationCategory: "MultimediaApplication"
+operatingSystem: "Web Browser"
+offers: { price: 0, priceCurrency: "USD" }
+featureList
+BreadcrumbList schema
+FAQPage schema (if FAQs are present)
+Category Pages:
+
+BreadcrumbList schema
+Homepage:
+
+FAQPage schema
+WebSite schema
+XML Sitemap
+Generate a dynamic sitemap at /sitemap.xml using Next.js route handler:
+
+Homepage
+All Tools page
+All individual tool pages (20)
+All category pages (6)
+About, Contact, Privacy, Terms, Cookie Policy, Disclaimer
+Include <lastmod>, <changefreq>, <priority> for each URL
+Sitemap index if needed for future scale
+robots.txt
+Create /robots.txt (or use Next.js route handler for dynamic generation):
+
+text
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Sitemap: https://yourdomain.com/sitemap.xml
+Canonical URLs
+Every page must have a canonical URL. Language variants must use hreflang tags.
+
+Internal Linking
+Related tools section on every tool page
+Category pages link to all tools in that category
+All tools page links to all tools
+Homepage links to popular tools and all categories
+Footer links to all categories
+Breadcrumbs link up the hierarchy
+URL Structure
+Clean, lowercase, hyphenated slugs
+No query parameters in canonical URLs
+Locale prefix: /en/tools/image-compressor, /ar/tools/image-compressor
+PHASE 12 — COOKIE CONSENT SYSTEM
+Build a fully compliant, non-deceptive cookie consent system.
+
+Cookie Categories:
+Necessary — Always on, cannot be turned off (session, consent preferences)
+Functional — Enhanced functionality (language preference, theme preference)
+Analytics — Usage tracking (Google Analytics — off by default)
+Advertising — Ad personalization (AdSense — off by default)
+Cookie Banner:
+Appears on first visit
+Not a full-screen overlay — a bottom or top bar that does not block content
+Three primary buttons: "Accept All", "Reject Non-Essential", "Manage Preferences"
+Accessible — keyboard navigable, ARIA roles, focus trap in modal
+Responsive — works on mobile
+Lightweight — no heavy third-party consent library required; build it yourself
+Preferences Modal:
+Toggle per category
+Clear description of what each category does
+"Save Preferences" button
+"Accept All" and "Reject All" shortcuts
+Consent Storage:
+Store consent in a first-party cookie (not localStorage) named consent_preferences
+Cookie expires after 365 days
+Re-ask if no consent found
+Cookie Settings Access:
+Link in footer: "Cookie Settings"
+Opens the preferences modal
+Users can change preferences at any time
+Consent-Gating:
+Analytics scripts: only load if analytics consent given
+Ad scripts: only load if advertising consent given
+These must genuinely not load before consent
+PHASE 13 — ANALYTICS INFRASTRUCTURE
+Do not integrate any analytics by default. Build the architecture to allow future integration.
+
+Create an AnalyticsProvider component:
+Reads consent state from the consent system
+Only loads analytics scripts if consent is given
+Exposes a trackEvent(eventName, properties) function via Context
+All tool interactions can call trackEvent without knowing which analytics platform is active
+Environment Variables for Future Use:
+text
+
+NEXT_PUBLIC_GA_MEASUREMENT_ID=
+NEXT_PUBLIC_GTM_ID=
+NEXT_PUBLIC_ADS_CLIENT_ID=
+NEXT_PUBLIC_ADS_ENABLED=false
+NEXT_PUBLIC_ANALYTICS_ENABLED=false
+Google Search Console:
+Prepare <meta name="google-site-verification"> slot in layout, populated from environment variable:
+text
+
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=
+PHASE 14 — ADVERTISING INFRASTRUCTURE
+Prepare ad placements without showing any ads in version one.
+
+Ad Placement Locations (Reserved):
+Homepage: Below hero, between sections
+Tool Pages: Below tool interface, below how-to section
+Sidebar (future): If a sidebar layout is added later
+AdPlacement Component:
+Renders a <div> with defined min-height to prevent layout shift
+Accepts slot prop (e.g., "homepage-top", "tool-below")
+Only renders ad code if NEXT_PUBLIC_ADS_ENABLED=true AND advertising cookies consented
+When disabled (default), renders nothing but maintains spacing via CSS
+PHASE 15 — PERFORMANCE OPTIMIZATION
+Treat performance as a first-class product requirement. Optimize for Core Web Vitals.
+
+Code Splitting:
+Each tool's processing logic is dynamically imported only when the tool page is visited
+next/dynamic for heavy components
+Tool-specific Web Workers are not bundled into the main bundle
+Image Optimization:
+Use next/image for all static images
+Serve appropriately sized images
+WebP format for site images
+Lazy Loading:
+Tool cards below the fold: lazy loaded
+Related tools section: lazy loaded
+FAQ accordion: content loaded lazily
+Web Workers:
+Implement Web Workers for:
+Color palette extraction (median cut algorithm — CPU intensive)
+Batch image compression
+Large image processing (files > 5MB)
+Use comlink or raw postMessage to communicate with workers
+Workers are in /public/workers/ or /lib/workers/ with proper TypeScript types
+Memory Management:
+Revoke URL.createObjectURL after use
+Clear Canvas references when no longer needed
+Do not hold processed image data in memory unnecessarily
+Warn users before processing very large files
+Bundle Size:
+Audit bundle with @next/bundle-analyzer
+Keep main bundle lean
+Vendor code splitting via Next.js defaults
+Core Web Vitals Targets:
+LCP < 2.5s
+FID/INP < 200ms
+CLS < 0.1
+Use next/font for font loading
+Preload critical resources
+PHASE 16 — SECURITY
+File Validation (Defense in Depth):
+Validate MIME type from file.type
+Validate file extension
+Validate file signature (magic bytes) by reading the first bytes of the file — do not trust file.type alone
+Validate file size before processing
+Reject any file that fails validation with a clear error message
+Never pass unsanitized file names to the DOM or download trigger
+Input Sanitization:
+All text inputs (watermark text, filenames) must be sanitized before being rendered to Canvas or DOM
+No innerHTML with user-provided content
+Use textContent or Canvas fillText for user text
+Download Safety:
+Use URL.createObjectURL + programmatic <a> click for downloads
+Set safe, sanitized filenames on downloads
+Do not use data: URLs for large files
+Content Security Policy:
+Configure CSP headers in next.config.js
+Allow necessary sources only
+script-src: 'self' (extend carefully if analytics added)
+img-src: 'self' blob: data: (needed for canvas blob previews)
+Environment:
+No secrets in client-side code
+All environment variables that are truly client-safe are prefixed NEXT_PUBLIC_
+Sensitive future keys (if any) must be server-side only
+PHASE 17 — ACCESSIBILITY
+Follow WCAG 2.1 AA standards throughout.
+
+Requirements:
+All interactive elements are keyboard reachable and operable
+Visible focus rings on all focusable elements (never outline: none without a replacement)
+All images have alt text (empty alt="" for decorative images)
+All form inputs have associated <label> elements
+Color contrast ratios meet WCAG AA (4.5:1 for normal text, 3:1 for large text)
+ARIA roles, labels, and descriptions where HTML semantics are insufficient
+Drag-and-drop upload has a keyboard-accessible alternative (click to browse)
+Modals trap focus and return focus when closed
+Skip navigation link at the top of the page
+Headings are properly nested (H1 → H2 → H3, never skip levels)
+Error messages are associated with their inputs via aria-describedby
+Processing state is announced to screen readers via aria-live region
+Color is not the only means of conveying information
+PHASE 18 — ERROR HANDLING
+Every tool must handle all failure scenarios gracefully.
+
+Error Types to Handle:
+Invalid file type selected
+File too large
+No file selected when processing triggered
+Browser does not support required API (WebP output, OffscreenCanvas)
+Processing fails (corrupted image, out of memory)
+Canvas rendering error
+Worker failure
+Error Display Rules:
+Use the ErrorDisplay component for all errors
+Show friendly, non-technical messages
+Show specific messages (e.g., "This file is too large. Maximum size is 50MB." not "Error 413")
+Provide a clear recovery path
+Log technical errors to console.error in development only
+Browser Compatibility:
+Detect lack of support for specific APIs before using them
+Show a clear message if a feature is not supported (e.g., "WebP encoding is not supported in your browser. Please try Chrome or Firefox.")
+Do not silently fail
+PHASE 19 — LEGAL & CONTENT PAGES
+Create complete, honest legal pages. Do not use fake placeholder text.
+
+Pages to Create:
+Privacy Policy (/privacy-policy)
+
+What data is collected (honestly: very little, since processing is local)
+How uploaded images are handled (processed locally, never uploaded)
+Cookie usage
+Third-party services (analytics when enabled, ads when enabled)
+User rights
+Contact information for privacy inquiries
+Cookie Policy (/cookie-policy)
+
+What cookies are used
+Categories of cookies
+How to manage cookies
+Link to cookie settings
+Terms of Service (/terms-of-service)
+
+Acceptable use
+No warranty (tools provided as-is)
+Limitation of liability
+Prohibited uses
+Governing law (placeholder jurisdiction)
+Disclaimer (/disclaimer)
+
+Tool accuracy disclaimer
+No guarantee of output quality
+User responsibility for output files
+About Us (/about)
+
+Platform description
+Mission: free tools for everyone
+Technology approach (local processing)
+No fake team bios
+Honest about what the platform is
+Contact (/contact)
+
+Contact form (name, email, message)
+Form should submit to a configurable endpoint (email service via environment variable — not implemented by default)
+Show success/error state
+Validation on all fields
+GDPR-appropriate (no unnecessary data collection)
+PHASE 20 — PWA PREPARATION
+Prepare for PWA without over-engineering it.
+
+Implement Now:
+manifest.json with app name, icons (placeholder SVG icons), theme color, display mode, start URL
+Meta tags for PWA in <head>: mobile-web-app-capable, apple-mobile-web-app-capable, theme color
+Icon sizes: 192×192, 512×512 (can be SVG-based initially)
+next.config.js prepared for next-pwa integration (commented out, not active)
+Architecture for Future:
+Service Worker registration point prepared in layout (commented out)
+Offline fallback page created but not served (for future activation)
+Note in README explaining how to activate PWA with next-pwa
+PHASE 21 — NEXT.JS CONFIGURATION
+next.config.js:
+Configure CSP headers
+Configure X-Frame-Options: DENY
+Configure X-Content-Type-Options: nosniff
+Configure Referrer-Policy: strict-origin-when-cross-origin
+Configure Permissions-Policy
+Image domains configuration
+Bundle analyzer (disabled by default, enabled via ANALYZE=true)
+Internationalization configuration
+tsconfig.json:
+Strict mode enabled
+Path aliases configured (@/ for root, @/lib/, @/components/, etc.)
+Environment Variables Template (.env.example):
+text
+
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+NEXT_PUBLIC_SITE_NAME=ImageTools
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=
+NEXT_PUBLIC_GA_MEASUREMENT_ID=
+NEXT_PUBLIC_GTM_ID=
+NEXT_PUBLIC_ADS_ENABLED=false
+NEXT_PUBLIC_ADS_CLIENT_ID=
+NEXT_PUBLIC_ANALYTICS_ENABLED=false
+CONTACT_FORM_ENDPOINT=
+PHASE 22 — 404 PAGE
+Create a custom 404 page:
+
+Friendly headline ("Page Not Found" / "الصفحة غير موجودة")
+Explanation
+Link back to homepage
+Link to All Tools
+Search bar to find a tool
+Consistent with site design
+PHASE 23 — TESTING CHECKLIST
+Before considering the project complete, verify each item:
+
+Functional Testing:
+ All 20 tools process real image files correctly
+ Image Compressor reduces file size with quality slider working
+ Image Resizer resizes with and without aspect ratio lock
+ Image Cropper allows interactive crop selection
+ Image Rotator rotates by 90°, 180°, 270°, and custom angles
+ Flip Horizontal produces a mirror image
+ Flip Vertical produces a vertically flipped image
+ All 6 format converters produce correct output format files
+ Image to PDF creates a valid PDF with the image
+ Multiple Images to PDF creates multi-page PDF in correct order
+ Merge Images produces a correctly merged output
+ Split Image produces correct number of tiles and ZIP downloads
+ Color Picker shows correct HEX/RGB/HSL on pixel click
+ Color Palette Extractor shows dominant colors correctly
+ Grayscale conversion produces correct output
+ Watermark tool applies text and image watermarks correctly
+ All download buttons trigger real file downloads
+ All Reset buttons clear the tool state completely
+Validation Testing:
+ Uploading a PDF when JPG is required shows error
+ Uploading a file over the size limit shows error
+ Uploading 0-byte file shows error
+ Uploading a file with wrong extension but correct MIME shows correct behavior
+ Uploading a file with correct extension but wrong MIME is rejected
+UI/UX Testing:
+ All pages render correctly on mobile (320px width minimum)
+ All pages render correctly on tablet (768px)
+ All pages render correctly on desktop (1280px+)
+ Dark mode looks correct on all pages
+ Light mode looks correct on all pages
+ No layout breaks in either mode
+Internationalization Testing:
+ Switching to Arabic applies RTL layout correctly
+ All UI strings appear in Arabic on AR locale
+ All UI strings appear in English on EN locale
+ RTL navigation works correctly
+ RTL forms and inputs work correctly
+ Language switch preserves current route
+SEO Testing:
+ Each tool page has a unique <title>
+ Each tool page has a unique meta description
+ Each page has a canonical URL
+ Homepage has WebSite schema
+ All tool pages have WebApplication schema
+ All pages with FAQs have FAQPage schema
+ All pages with breadcrumbs have BreadcrumbList schema
+ /sitemap.xml returns valid XML with all pages listed
+ /robots.txt is accessible and correct
+ No duplicate content
+Cookie Consent Testing:
+ Banner appears on first visit
+ "Accept All" saves all consents and hides banner
+ "Reject Non-Essential" saves only necessary consent and hides banner
+ "Manage Preferences" opens modal
+ Each category toggle works in modal
+ "Save Preferences" saves correctly
+ Consent persists on page reload
+ "Cookie Settings" in footer opens preferences modal
+ Analytics scripts do not load before consent
+Accessibility Testing:
+ All interactive elements are keyboard accessible
+ Tab order is logical throughout
+ Visible focus states on all focusable elements
+ Color contrast passes WCAG AA
+ All images have appropriate alt text
+ ARIA labels present where needed
+ Screen reader announces processing states
+ No ARIA role conflicts
+Performance Testing:
+ Lighthouse score > 90 on Performance
+ Lighthouse score > 90 on Accessibility
+ Lighthouse score > 90 on Best Practices
+ Lighthouse score > 90 on SEO
+ No render-blocking resources
+ Images are optimized
+ Tool processing does not freeze the UI
+ Web Workers are used for heavy operations
+PHASE 24 — DEPLOYMENT PREPARATION
+Production Checklist:
+.env.example committed to repository
+.env.local in .gitignore
+No secrets in any committed file
+next.config.js has security headers configured
+package.json has correct build and start scripts
+README.md explains: project setup, environment variables, how to add a new tool, deployment steps
+Vercel-ready: no special server configuration needed
+Static assets in /public are optimized
+No development-only code in production build
+README Must Include:
+Project overview
+Tech stack
+Local development setup (npm install, npm run dev)
+Environment variables explanation
+How to add a new tool (step-by-step)
+How to add a new language
+How to enable analytics
+How to enable advertising
+How to activate PWA mode
+Deployment to Vercel instructions
+FINAL REQUIREMENTS SUMMARY
+You must not:
+
+Create any tool that has fake or simulated functionality
+Use external APIs for image processing
+Upload user images to any third-party server
+Hardcode any secrets or API keys
+Duplicate processing logic across tools
+Use fake statistics, testimonials, or user counts
+Create placeholder buttons that do nothing
+Skip error handling for any tool
+Use a single massive component file — keep components focused and modular
+Leave TypeScript type errors or any types without justification
+You must:
+
+Build all 20 tools with full, working functionality
+Process all images 100% in the browser
+Generate valid structured data for every page
+Support Arabic RTL and English LTR correctly
+Implement a working cookie consent system
+Create a sitemap and robots.txt
+Build a scalable tool registry that makes adding Tool #21 trivial
+Write clean, typed, maintainable TypeScript throughout
+Follow the architecture defined above consistently
+Test everything before declaring the project complete
+IMPLEMENTATION ORDER
+Follow this sequence to avoid rework:
+
+Initialize Next.js project with TypeScript, Tailwind CSS, shadcn/ui
+Configure next.config.js, tsconfig.json, environment variables
+Set up next-intl with EN and AR locale files (write all translations)
+Set up next-themes for dark/light mode
+Create the tool registry with all 20 tools defined
+Build the design system (CSS variables, Tailwind config, typography)
+Build shared layout components (Header, Footer, Breadcrumb)
+Build shared tool components (ToolShell, FileUploader, ImagePreview, DownloadButton, etc.)
+Build the cookie consent system
+Build the SEO infrastructure (metadata generators, StructuredData component)
+Build the Homepage
+Build the All Tools page
+Build the Category pages
+Build the [slug] tool page shell
+Implement all 20 tool processing functions (image processing logic)
+Connect each tool's processing logic to its page
+Build static content pages (About, Contact, Privacy, Terms, Cookie Policy, Disclaimer, 404)
+Configure sitemap.xml and robots.txt
+Set up Ad placement infrastructure
+Set up Analytics infrastructure
+PWA manifest preparation
+Full testing pass (all checklist items)
+Performance audit and fixes
+Final production build verification
+Begin now. Work systematically. Do not skip steps. Do not rush tool implementations — every tool must work correctly with real images.
